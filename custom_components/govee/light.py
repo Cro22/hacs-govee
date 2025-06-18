@@ -193,11 +193,11 @@ class GoveeLightEntity(LightEntity):
         if ATTR_COLOR_TEMP_KELVIN in kwargs:
             color_temp = kwargs.pop(ATTR_COLOR_TEMP_KELVIN)
             just_turn_on = False
-            if color_temp > COLOR_TEMP_KELVIN_MAX:
-                color_temp = COLOR_TEMP_KELVIN_MAX
-            elif color_temp < COLOR_TEMP_KELVIN_MIN:
-                color_temp = COLOR_TEMP_KELVIN_MIN
-            _, err = await self._hub.set_color_temp(self._device, color_temp)
+            if color_temp_kelvin > COLOR_TEMP_KELVIN_MAX:
+                color_temp_kelvin = COLOR_TEMP_KELVIN_MAX
+            elif color_temp_kelvin < COLOR_TEMP_KELVIN_MIN:
+                color_temp_kelvin = COLOR_TEMP_KELVIN_MIN
+            _, err = await self._hub.set_color_temp(self._device, color_temp_kelvin)
 
         # if there is no known specific command - turn on
         if just_turn_on:
@@ -244,6 +244,7 @@ class GoveeLightEntity(LightEntity):
             "name": self.name,
             "manufacturer": "Govee",
             "model": self._device.model,
+            "via_device": (DOMAIN, "Govee API (cloud)"),
         }
 
     @property
@@ -295,17 +296,19 @@ class GoveeLightEntity(LightEntity):
     @property
     def color_temp(self):
         """Return the color_temp of the light."""
-        return self._device.color_temp
+        if not self._device.color_temp:
+            return None
+        return color.color_temperature_kelvin_to_mired(self._device.color_temp)
 
     @property
-    def min_color_temp_kelvin(self):
+    def min_mireds(self):
         """Return the coldest color_temp that this light supports."""
-        return COLOR_TEMP_KELVIN_MAX
+        return color.color_temperature_kelvin_to_mired(COLOR_TEMP_KELVIN_MAX)
 
     @property
-    def max_color_temp_kelvin(self):
+    def max_mireds(self):
         """Return the warmest color_temp that this light supports."""
-        return COLOR_TEMP_KELVIN_MIN
+        return color.color_temperature_kelvin_to_mired(COLOR_TEMP_KELVIN_MIN)
 
     @property
     def extra_state_attributes(self):
